@@ -1,8 +1,9 @@
 use regex::Regex;
+use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::collections::HashMap;
 mod onemacro;
+use colored::*;
 use onemacro::OneMacro;
 
 fn main() {
@@ -19,22 +20,23 @@ fn main() {
 
     let macro_regex = Regex::new(r"![A-Z]*\(.*\)[ ]*\{.*\}").unwrap();
     let lines = content.lines();
-    let mut macro_list : HashMap<String, OneMacro::OneMacro> = HashMap::new();
+    let mut macro_list: HashMap<String, OneMacro::OneMacro> = HashMap::new();
 
     for line in lines {
-        let mut line : String = String::from(line);
-        println!("line: {}", line);
+        let mut line: String = String::from(line);
+        println!("{}: {}", "LINE".bright_yellow(), line);
 
         OneMacro::process_string(&mut line, &macro_list);
-        
+
         if macro_regex.is_match(&line) {
             println!("   >>> MACRO DECLARATION!");
             let one_macro = match OneMacro::from_string(&line) {
                 Some(onemacro) => macro_list.insert(onemacro.name.clone(), onemacro),
-                None => continue
+                None => continue,
             };
+            println!("   MACRO: {:?}", one_macro);
         }
-
+        println!("{}: {}", "RESULT".bright_green(), line);
     }
     println!("\n\n   ====>>> MACRO LIST {:?}", macro_list);
 }
