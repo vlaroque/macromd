@@ -1,30 +1,46 @@
+mod onemacro;
+mod lineparser;
+use onemacro::OneMacro;
 use colored::*;
 use regex::Regex;
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
-mod onemacro;
-use onemacro::OneMacro;
-mod lineparser;
 use std::path::Path;
+use clap::{arg, command, Command, ArgMatches};
 
+fn init() -> ArgMatches {
+    let matches = command!()
+        .arg(arg!([filename] "markdown file name to compile").required(true))
+        .arg(arg!(-o --output <FILE> "Sets a custom output file")
+            .required(false)
+        )
+        .get_matches();
+    return matches;
+}
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let filename = &args[1];
-    let mut out_filename = filename.to_string();
+    let matches = init();
+    let mut in_filename = String::new();
+    if let Some(filename) = matches.value_of("filename") {
+        in_filename = filename.to_string();
+    }
+    else {
+        return ;
+    }
+    let mut out_filename = in_filename.to_string();
     out_filename.push_str(".md");
     let mut out_lines: Vec<String> = Vec::new();
-    let content = match fs::read_to_string(filename) {
+
+    println!("filename = {}", in_filename);
+    let content = match fs::read_to_string(in_filename) {
         Ok(content) => content,
         Err(err) => {
             println!("failed to get content with err {}", err);
             return;
         }
     };
-    println!("filename = {}", filename);
 
     let macro_regex = Regex::new(r"![A-Z]*\(.*\)[ ]*\{.*\}").unwrap();
     let lines = content.lines();
