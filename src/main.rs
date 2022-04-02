@@ -10,27 +10,34 @@ use std::io::Write;
 use std::path::Path;
 use clap::{arg, command, Command, ArgMatches};
 
-fn init() -> ArgMatches {
+fn arg_parse() -> Option<(String, String)> {
+    let mut in_filename = String::new();
+    let mut out_filename = in_filename.to_string();
     let matches = command!()
         .arg(arg!([filename] "markdown file name to compile").required(true))
         .arg(arg!(-o --output <FILE> "Sets a custom output file")
             .required(false)
         )
         .get_matches();
-    return matches;
-}
 
-fn main() {
-    let matches = init();
-    let mut in_filename = String::new();
     if let Some(filename) = matches.value_of("filename") {
         in_filename = filename.to_string();
     }
-    else {
-        return ;
+
+    if let Some(filename) = matches.value_of("output") {
+        out_filename = filename.to_string();
     }
-    let mut out_filename = in_filename.to_string();
-    out_filename.push_str(".md");
+    else {
+        out_filename = in_filename.clone();
+        out_filename.push_str(".md");
+    }
+
+    return Some((in_filename, out_filename));
+}
+
+fn main() {
+    let (in_filename, out_filename) = arg_parse().expect("failed to parse args");
+
     let mut out_lines: Vec<String> = Vec::new();
 
     println!("filename = {}", in_filename);
